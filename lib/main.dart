@@ -39,18 +39,18 @@ Widget attractions() {
           builder: (context, snap) {
             // ロード中はスピナーを表示
             if (snap.connectionState != ConnectionState.done) {
-              print('waiting');
               return CircularProgressIndicator();
             }
             // エラー時
             if (snap.hasError) {
               return Text("${snap.error}");
             }
-            print(snap.data[1]);
+
+            //print(snap.data[1]);
 
             return ListView.builder(
                 padding: const EdgeInsets.all(5),
-                itemCount: snap.data.length,
+                itemCount: snap.data.length * 2,
                 itemBuilder: (context, int i) {
                   // 奇数の時は罫線を表示
                   if (i.isOdd) return Divider();
@@ -66,5 +66,5 @@ Widget attractions() {
                   );
                 });
           },
-          future: fetchAttraction()));
+          future: fetchTdlAttraction()));
 }
