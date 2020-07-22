@@ -1,77 +1,70 @@
 import 'package:flutter/material.dart';
-import 'package:english_words/english_words.dart';
+
+import 'header.dart';
+import 'footer.dart';
+
+import 'attraction.dart';
 
 // main関数がrunApp関数を実行し、MyAppウィジェットを呼んでいる。
 // ここはパッケージのimport宣言の次に来る部分でwidgetではない。アプリの始まりになる部分。
 void main() => runApp(MyApp());
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
+  // コンストラクタ
+  // リダイレクティングコンストラクタで継承元のコンストラクタを呼び出し
+  MyApp({Key key}) : super(key: key);
   @override
+  _MyAppState createState() => _MyAppState();
+}
 
-  // buildメソッドを利用してreturnしているwidgetをビルド
+class _MyAppState extends State<MyApp> {
+  @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Startup Name Generator',
-      home: RandomWords(), //statefullメソッドを返すクラスを呼び出す
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+      ),
+      home: Scaffold(
+        appBar: Header(),
+        body: attractions(),
+        bottomNavigationBar: Footer(),
+      ),
     );
   }
 }
 
-// StatefullWidgetクラス
-// Stateクラスをインスタンスとして生成し、widgetを呼び出す
-// Stateクラスを返すだけのシンプルな構造
-class RandomWords extends StatefulWidget {
-  @override
+Widget attractions() {
+  return Center(
+      child: FutureBuilder(
+          builder: (context, snap) {
+            // ロード中はスピナーを表示
+            if (snap.connectionState != ConnectionState.done) {
+              print('waiting');
+              return CircularProgressIndicator();
+            }
+            // エラー時
+            if (snap.hasError) {
+              return Text("${snap.error}");
+            }
+            print(snap.data[1]);
 
-  // クラスのインスタンス化にnewは省略できる？
-  _RandomWordsState createState() => _RandomWordsState();
-
-  /*
-  アロー関数を利用しないハージョン
-  _RandomWordsState createState() {
-    return ( _RandomWordsState() );
-  }
-  */
-}
-
-// Stateクラス
-class _RandomWordsState extends State<RandomWords> {
-  // WordPair型でリストを宣言
-  final _suggestions = <WordPair>[];
-  // TextStyleクラスのコンストラクタ？
-  final _biggerFont = TextStyle(fontSize: 18.0);
-  @override
-
-  // buildメソッド
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Startup Name Generator'),
-      ),
-      body: _buildSuggestions(),
-    );
-  }
-
-  Widget _buildSuggestions() {
-    return ListView.builder(
-        padding: EdgeInsets.all(16.0),
-        itemBuilder: /*1*/ (context, i) {
-          if (i.isOdd) return Divider(); /*2*/
-
-          final index = i ~/ 2; /*3*/
-          if (index >= _suggestions.length) {
-            _suggestions.addAll(generateWordPairs().take(10)); /*4*/
-          }
-          return _buildRow(_suggestions[index]); //
-        });
-  }
-
-  Widget _buildRow(WordPair pair) {
-    return ListTile(
-      title: Text(
-        pair.asPascalCase, //パスカルケースの英単語
-        style: _biggerFont, // フォントサイズ18で出力
-      ),
-    );
-  }
+            return ListView.builder(
+                padding: const EdgeInsets.all(5),
+                itemCount: snap.data.length,
+                itemBuilder: (context, int i) {
+                  // 奇数の時は罫線を表示
+                  if (i.isOdd) return Divider();
+                  int idx = i ~/ 2;
+                  return ListTile(
+                    leading: Image(
+                      // Imageウィジェット
+                      image: NetworkImage(snap.data[idx]['img_url']), // 表示したい画像
+                    ),
+                    title: Text(snap.data[idx]['name']),
+                    subtitle: Text(
+                        snap.data[idx]['condition']['operating_1'] ??= ' '),
+                  );
+                });
+          },
+          future: fetchAttraction()));
 }
