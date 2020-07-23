@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'disney_sea.dart';
 
 class Footer extends StatefulWidget {
   const Footer();
@@ -32,6 +33,10 @@ class _Footer extends State {
         setState(() {
           _currentIndex = index;
         });
+        //Navigator.pushNamed(context, "/sea");
+        Navigator.push(context,
+            new MaterialPageRoute(builder: (context) => new DisneySea()));
+        print('click!!');
       },
     ));
   }
