@@ -11,8 +11,11 @@ class _LandState extends State<DisneyLand> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: Header(),
-      body: attractions(),
+      appBar: Header(
+        'TDL',
+        Colors.pink[200],
+      ),
+      body: attractionsList('TDL'),
     );
   }
 }

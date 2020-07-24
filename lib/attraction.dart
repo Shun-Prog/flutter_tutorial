@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:cached_network_image/cached_network_image.dart';
 import 'dart:convert';
+import 'package:flutter/rendering.dart';
 
 const BASE_URL = 'https://maihamatimez.com/api/v1/';
 
@@ -24,88 +26,73 @@ Future fetchTdlAttraction() async {
   }
 }
 
-Widget attractions() {
+Widget attractionsList(String parkType) {
   return Center(
-      child: FutureBuilder(
-          builder: (context, snap) {
-            // ロード中はスピナーを表示
-            if (snap.connectionState != ConnectionState.done) {
-              return CircularProgressIndicator();
-            }
-            // エラー時
-            if (snap.hasError) {
-              return Text("${snap.error}");
-            }
+    child: FutureBuilder(
+      builder: (context, snap) {
+        // ロード中はスピナーを表示
+        if (snap.connectionState != ConnectionState.done) {
+          return CircularProgressIndicator();
+        }
+        // エラー時
+        if (snap.hasError) {
+          return Text("${snap.error}");
+        }
 
-            //print(snap.data[1]);
+        return ListView.builder(
+            padding: const EdgeInsets.all(5),
+            itemCount: snap.data.length * 2,
+            itemBuilder: (context, int i) {
+              // 奇数の時は罫線を表示
+              if (i.isOdd)
+                return Divider(
+                  color: Colors.grey,
+                  thickness: 0.5,
+                );
+              int idx = i ~/ 2;
 
-            return ListView.builder(
-                padding: const EdgeInsets.all(5),
-                itemCount: snap.data.length * 2,
-                itemBuilder: (context, int i) {
-                  // 奇数の時は罫線を表示
-                  if (i.isOdd) return Divider();
-                  int idx = i ~/ 2;
+              String oparating = snap.data[idx]['condition']['operating_1'];
+              String status =
+                  snap.data[idx]['condition']['facilityStatusMessage'];
 
-                  final oparating = snap.data[idx]['condition']['operating_1'];
-                  String time;
-                  if (oparating == '運営中') {
-                    time = snap.data[idx]['condition']['standbyTime'] ??= '';
-                  }
+              if (status != null) {
+                oparating = status;
+              }
 
-                  return ListTile(
-                    leading: Image(
-                      // Imageウィジェット
-                      image: NetworkImage(snap.data[idx]['img_url']), // 表示したい画像
+              String time;
+              if (oparating == '運営中') {
+                time = snap.data[idx]['condition']['standbyTime'] ??= '';
+              }
+
+              return ListTile(
+                leading: CachedNetworkImage(
+                  imageUrl: snap.data[idx]['img_url'],
+                  imageBuilder: (context, imageProvider) => Container(
+                    width: 58.0,
+                    height: 60.0,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      image: DecorationImage(
+                          image: imageProvider, fit: BoxFit.cover),
                     ),
-                    title: Text(snap.data[idx]['name']),
-                    subtitle:
-                        Text("${oparating} ${time != null ? '${time}分' : ''}"),
-                  );
-                });
-          },
-          future: fetchTdlAttraction()));
-}
-
-Widget tdsAttractions() {
-  return Center(
-      child: FutureBuilder(
-          builder: (context, snap) {
-            // ロード中はスピナーを表示
-            if (snap.connectionState != ConnectionState.done) {
-              return CircularProgressIndicator();
-            }
-            // エラー時
-            if (snap.hasError) {
-              return Text("${snap.error}");
-            }
-
-            //print(snap.data[1]);
-
-            return ListView.builder(
-                padding: const EdgeInsets.all(5),
-                itemCount: snap.data.length * 2,
-                itemBuilder: (context, int i) {
-                  // 奇数の時は罫線を表示
-                  if (i.isOdd) return Divider();
-                  int idx = i ~/ 2;
-
-                  final oparating = snap.data[idx]['condition']['operating_1'];
-                  String time;
-                  if (oparating == '運営中') {
-                    time = snap.data[idx]['condition']['standbyTime'] ??= '';
-                  }
-
-                  return ListTile(
-                    leading: Image(
-                      // Imageウィジェット
-                      image: NetworkImage(snap.data[idx]['img_url']), // 表示したい画像
-                    ),
-                    title: Text(snap.data[idx]['name']),
-                    subtitle:
-                        Text("${oparating} ${time != null ? '${time}分' : ''}"),
-                  );
-                });
-          },
-          future: fetchTdsAttraction()));
+                  ),
+                  placeholder: (context, url) => CircularProgressIndicator(),
+                  errorWidget: (context, url, error) => Icon(Icons.error),
+                ),
+                title: Text(snap.data[idx]['name']),
+                subtitle: Text(oparating),
+                trailing: Text(
+                  "${time != null ? '$time分' : ''}",
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 20,
+                    color: Colors.red,
+                  ),
+                ),
+              );
+            });
+      },
+      future: parkType == 'TDS' ? fetchTdsAttraction() : fetchTdlAttraction(),
+    ),
+  );
 }

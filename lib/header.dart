@@ -4,11 +4,17 @@ class Header extends StatelessWidget with PreferredSizeWidget {
   @override
   Size get preferredSize => Size.fromHeight(kToolbarHeight);
 
+  final title;
+  final color;
+
+  Header([this.title, this.color]);
+
   @override
   Widget build(BuildContext context) {
     return AppBar(
-      title: Text('ホーム'),
-      backgroundColor: Colors.blue,
+      leading: Icon(Icons.menu),
+      title: Text(this.title),
+      backgroundColor: this.color,
     );
   }
 }

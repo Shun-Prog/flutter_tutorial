@@ -12,6 +12,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       home: Base(),
+      debugShowCheckedModeBanner: false,
     );
   }
 }
@@ -94,21 +95,3 @@ class _Base extends State<Base> with SingleTickerProviderStateMixin {
     );
   }
 }
-
-/*
-class _MyAppState extends State<MyApp> {
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
-      home: Scaffold(
-        appBar: Header(),
-        body: attractions(),
-        bottomNavigationBar: Footer(),
-      ),
-    );
-  }
-}
-*/
