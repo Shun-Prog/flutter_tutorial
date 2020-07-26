@@ -47,7 +47,7 @@ class Home extends StatelessWidget {
                     ),
                     title: Text('東京ディズニーシー'),
                     subtitle: Text(
-                      '8:00 - 20:00',
+                      '閉園中',
                       style: TextStyle(color: Colors.black.withOpacity(0.6)),
                     ),
                   ),

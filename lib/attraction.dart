@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:cached_network_image/cached_network_image.dart';
@@ -11,6 +12,7 @@ Future fetchTdsAttraction() async {
   // APIをコールしてresponseに格納
   final response = await http.get('$BASE_URL/disneysea/attractions');
   if (response.statusCode == 200) {
+    print('fetch!!');
     return json.decode(response.body);
   } else {
     throw Exception('Failed to load Attraction');
@@ -20,18 +22,21 @@ Future fetchTdsAttraction() async {
 Future fetchTdlAttraction() async {
   final response = await http.get('$BASE_URL/disneyland/attractions');
   if (response.statusCode == 200) {
+    print('fetch!!');
     return json.decode(response.body);
   } else {
     throw Exception('Failed to load Attraction');
   }
 }
 
-Widget attractionsList(String parkType) {
+Widget attractionsList(Future _data, String _sortType) {
   return Center(
     child: FutureBuilder(
+      future: _data,
       builder: (context, snap) {
-        // ロード中はスピナーを表示
-        if (snap.connectionState != ConnectionState.done) {
+        // 初回ロードはスピナーを表示
+        if (snap.connectionState != ConnectionState.done &&
+            snap.hasData != true) {
           return CircularProgressIndicator();
         }
         // エラー時
@@ -39,9 +44,29 @@ Widget attractionsList(String parkType) {
           return Text("${snap.error}");
         }
 
+        /* リスト加工処理 */
+        List<Map<String, dynamic>> test;
+        test = List<Map<String, dynamic>>.from(snap.data);
+
+        if (_sortType == 'normal') {
+          test.sort((a, b) => a['id'] - b['id']);
+        }
+
+        if (_sortType == 'short') {
+          test.sort((a, b) =>
+              int.parse(a['condition']['standbyTime'] ??= '0') -
+              int.parse(b['condition']['standbyTime'] ??= '0'));
+        }
+
+        if (_sortType == 'long') {
+          test.sort((a, b) =>
+              int.parse(b['condition']['standbyTime'] ??= '0') -
+              int.parse(a['condition']['standbyTime'] ??= '0'));
+        }
+
         return ListView.builder(
-            padding: const EdgeInsets.all(5),
-            itemCount: snap.data.length * 2,
+            //padding: const EdgeInsets.all(5),
+            itemCount: test.length * 2,
             itemBuilder: (context, int i) {
               // 奇数の時は罫線を表示
               if (i.isOdd)
@@ -51,9 +76,8 @@ Widget attractionsList(String parkType) {
                 );
               int idx = i ~/ 2;
 
-              String oparating = snap.data[idx]['condition']['operating_1'];
-              String status =
-                  snap.data[idx]['condition']['facilityStatusMessage'];
+              String oparating = test[idx]['condition']['operating_1'];
+              String status = test[idx]['condition']['facilityStatusMessage'];
 
               if (status != null) {
                 oparating = status;
@@ -61,25 +85,38 @@ Widget attractionsList(String parkType) {
 
               String time;
               if (oparating == '運営中') {
-                time = snap.data[idx]['condition']['standbyTime'] ??= '';
+                time = test[idx]['condition']['standbyTime'] ??= '';
               }
 
               return ListTile(
                 leading: CachedNetworkImage(
-                  imageUrl: snap.data[idx]['img_url'],
+                  imageUrl: test[idx]['img_url'],
                   imageBuilder: (context, imageProvider) => Container(
+                    child: Center(
+                      child: Padding(
+                        padding: EdgeInsets.only(top: 35.0),
+                        child: Text(
+                          '©︎Disney',
+                          style: TextStyle(
+                            fontSize: 8,
+                          ),
+                        ),
+                      ),
+                    ),
                     width: 58.0,
                     height: 60.0,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       image: DecorationImage(
-                          image: imageProvider, fit: BoxFit.cover),
+                        image: imageProvider,
+                        fit: BoxFit.cover,
+                      ),
                     ),
                   ),
-                  placeholder: (context, url) => CircularProgressIndicator(),
+                  placeholder: (context, url) => CupertinoActivityIndicator(),
                   errorWidget: (context, url, error) => Icon(Icons.error),
                 ),
-                title: Text(snap.data[idx]['name']),
+                title: Text(test[idx]['name']),
                 subtitle: Text(oparating),
                 trailing: Text(
                   "${time != null ? '$time分' : ''}",
@@ -92,7 +129,6 @@ Widget attractionsList(String parkType) {
               );
             });
       },
-      future: parkType == 'TDS' ? fetchTdsAttraction() : fetchTdlAttraction(),
     ),
   );
 }

@@ -11,6 +11,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      title: 'SmartDisney',
       home: Base(),
       debugShowCheckedModeBanner: false,
     );
@@ -32,15 +33,15 @@ class _Base extends State<Base> with SingleTickerProviderStateMixin {
   List<BottomNavigationBarItem> myBottomNavBarItems() {
     return [
       BottomNavigationBarItem(
-        icon: Icon(Icons.book),
+        icon: Icon(Icons.home),
         title: const Text('HOME'),
       ),
       BottomNavigationBarItem(
-        icon: Icon(Icons.cloud),
+        icon: Icon(Icons.card_travel),
         title: const Text('TDL'),
       ),
       BottomNavigationBarItem(
-        icon: Icon(Icons.cake),
+        icon: Icon(Icons.card_travel),
         title: const Text('TDS'),
       ),
     ];
