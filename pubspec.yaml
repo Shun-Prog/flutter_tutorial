@@ -28,6 +28,10 @@ dependencies:
   http: ^0.12.2
   cached_network_image: ^2.2.0+1
   custom_refresh_indicator: ^0.8.0+1
+  intl: ^0.16.1
+  
+  flutter_localizations:
+    sdk: flutter
 
 
 dev_dependencies:

@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import 'package:cached_network_image/cached_network_image.dart';
 import 'dart:convert';
 import 'package:flutter/rendering.dart';
+import 'package:intl/intl.dart';
 
 const BASE_URL = 'https://maihamatimez.com/api/v1/';
 
@@ -50,18 +51,43 @@ Widget attractionsList(Future _data, String _sortType) {
 
         if (_sortType == 'normal') {
           test.sort((a, b) => a['id'] - b['id']);
+          test.sort((a, b) => a['area'].compareTo(b['area']));
         }
 
         if (_sortType == 'short') {
-          test.sort((a, b) =>
-              int.parse(a['condition']['standbyTime'] ??= '0') -
-              int.parse(b['condition']['standbyTime'] ??= '0'));
+          test.sort((a, b) {
+            if (a['condition']['operating_1'] != '運営中' &&
+                b['condition']['operating_1'] != '運営中') {
+              return 0;
+            } else if (a['condition']['operating_1'] != '運営中' &&
+                b['condition']['operating_1'] == '運営中') {
+              return 1;
+            } else if (a['condition']['operating_1'] == '運営中' &&
+                b['condition']['operating_1'] != '運営中') {
+              return -1;
+            } else {
+              return int.parse(a['condition']['standbyTime']) -
+                  int.parse(b['condition']['standbyTime']);
+            }
+          });
         }
 
         if (_sortType == 'long') {
-          test.sort((a, b) =>
-              int.parse(b['condition']['standbyTime'] ??= '0') -
-              int.parse(a['condition']['standbyTime'] ??= '0'));
+          test.sort((a, b) {
+            if (a['condition']['operating_1'] != '運営中' &&
+                b['condition']['operating_1'] != '運営中') {
+              return 0;
+            } else if (a['condition']['operating_1'] != '運営中' &&
+                b['condition']['operating_1'] == '運営中') {
+              return 1;
+            } else if (a['condition']['operating_1'] == '運営中' &&
+                b['condition']['operating_1'] != '運営中') {
+              return -1;
+            } else {
+              return int.parse(b['condition']['standbyTime']) -
+                  int.parse(a['condition']['standbyTime']);
+            }
+          });
         }
 
         return ListView.builder(
@@ -83,9 +109,19 @@ Widget attractionsList(Future _data, String _sortType) {
                 oparating = status;
               }
 
-              String time;
+              /// 運営中の場合のみスタンバイ時間を取得
+              String startAt = "";
+              String endAt = "";
+              String time = "";
               if (oparating == '運営中') {
-                time = test[idx]['condition']['standbyTime'] ??= '';
+                time = test[idx]['condition']['standbyTime'];
+                var format = new DateFormat("Hm");
+
+                startAt = format.format(
+                    DateTime.parse(test[idx]['condition']['startAt'])
+                        .toLocal());
+                endAt = format.format(
+                    DateTime.parse(test[idx]['condition']['endAt']).toLocal());
               }
 
               return ListTile(
@@ -117,9 +153,9 @@ Widget attractionsList(Future _data, String _sortType) {
                   errorWidget: (context, url, error) => Icon(Icons.error),
                 ),
                 title: Text(test[idx]['name']),
-                subtitle: Text(oparating),
+                subtitle: Text(oparating + ' ' + startAt + ' - ' + endAt),
                 trailing: Text(
-                  "${time != null ? '$time分' : ''}",
+                  "${time != "" ? '$time分' : ''}",
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 20,

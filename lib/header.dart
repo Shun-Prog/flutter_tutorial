@@ -29,6 +29,7 @@ class Header extends StatelessWidget with PreferredSizeWidget {
     );
   }
 
+  // ignore: missing_return
   Future<Widget> sortModal(BuildContext context) async {
     String result = await showDialog(
       context: context,
